@@ -1,14 +1,20 @@
 
 pub use cardparse_derive::*;
 
+#[derive(Debug)]
+pub enum ParseError {}
 
 pub trait CardParse {
-    fn cardparse(s: &str) -> Result<Self, failure::Error> where Self: Sized;
+    fn cardparse(s: &str) -> Result<Self, ParseError> where Self: Sized;
+}
+
+pub mod prelude {
+    pub use crate::{CardParse, ParseError};
 }
 
 #[cfg(test)]
 mod test {
-    use super::CardParse;
+    use super::prelude::*;
 
     #[derive(CardParse)]
     struct TLE {

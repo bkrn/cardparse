@@ -19,7 +19,7 @@ pub fn derive_heap_size(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 
     let expanded = quote! {
         impl #impl_generics CardParse for #name #ty_generics #where_clause {
-            fn cardparse(s: &str) -> Result<#name, failure::Error> {
+            fn cardparse(s: &str) -> Result<#name, crate::ParseError> {
                 let lines: Vec<&str> = s.lines().collect();
                 Ok( #name {
                     #interior
@@ -98,7 +98,10 @@ fn create_parsing(data: &Data) -> TokenStream {
                             let start = parsed.start;
                             let end = parsed.end;
                             quote!{
-                                #name: String::from(lines.get(#line-1).and_then(|s| s.get(#start - 1 .. #end)).unwrap()),
+                                #name: String::from(lines.get(#line-1).and_then(|s| {
+                                    let stop = if #end > s.chars().count() {s.chars().count()} else {#end};
+                                    s.get(#start - 1 .. stop)
+                                }).unwrap()),
                             }
                         } else {
                             quote!{#name: String::new(),}

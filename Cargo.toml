@@ -1,0 +1,9 @@
+[package]
+name = "cardparse"
+version = "0.1.0"
+authors = ["aaron@bkrn.org"]
+edition = "2018"
+
+[dependencies]
+cardparse_derive = { path = "cardparse_derive" }
+failure = "0.1"

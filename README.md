@@ -7,7 +7,8 @@ static TLE_STRING: &str = r#"ISS (ZARYA)
 
 #[derive(cardparse::CardParse)]
 struct TwoLineElement {
-    #[location(line=1,start=1,end=24)]
+    // If end is missing then read to end of line
+    #[location(line=1,start=1)]
     name: String,
     #[location(line=2,start=1,end=1)]
     line_number_one: String,

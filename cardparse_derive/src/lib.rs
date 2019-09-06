@@ -41,9 +41,9 @@ fn add_trait_bounds(mut generics: Generics) -> Generics {
     generics
 }
 
-fn literal_int(lit: syn::Lit) -> usize {
+fn literal_int(lit: syn::Lit) -> Option<usize> {
     if let syn::Lit::Int(lint) = lit {
-        lint.base10_parse().unwrap()
+        lint.base10_parse().ok()
     } else {
         panic!{"Field attribute arg was not int literal"}
     }
@@ -52,14 +52,14 @@ fn literal_int(lit: syn::Lit) -> usize {
 struct ParseAttrs {
     line: usize,
     start: usize,
-    end: usize,
+    end: Option<usize>,
 }
 
 impl ParseAttrs {
     fn new(attr: &syn::Attribute) -> Self {
-        let mut line = 1;
-        let mut start = 1;
-        let mut end = 1;
+        let mut line = None;
+        let mut start = None;
+        let mut end = None;
         match attr.parse_meta() {
             Ok(syn::Meta::List(meta_list)) => {
                 for meta in meta_list.nested {
@@ -81,7 +81,7 @@ impl ParseAttrs {
             }
             _ => panic!{"Field meta wrong format"},
         }
-        ParseAttrs{line,start,end}
+        ParseAttrs{line: line.expect("Line attribute required"),start: start.expect("Start attribute required"),end}
     }
 }
 
@@ -93,15 +93,17 @@ fn create_parsing(data: &Data) -> TokenStream {
                     let recurse = fields.named.iter().map(|f| {
                         let name = &f.ident;
                         if let Some(attr) = f.attrs.iter().filter(|f| f.path.is_ident("location")).next() {
-                            let parsed = ParseAttrs::new(attr);
-                            let line = parsed.line;
-                            let start = parsed.start;
-                            let end = parsed.end;
-                            quote!{
-                                #name: String::from(lines.get(#line-1).and_then(|s| {
-                                    let stop = if #end > s.chars().count() {s.chars().count()} else {#end};
-                                    s.get(#start - 1 .. stop)
-                                }).unwrap()),
+                            match ParseAttrs::new(attr) {
+                                ParseAttrs{start, line, end: None} => quote!{
+                                    #name: String::from(lines.get(#line-1).and_then(|s| {
+                                        s.get(#start - 1 .. )
+                                    }).unwrap()),
+                                },
+                                ParseAttrs{start, line, end: Some(end)} => quote!{
+                                    #name: String::from(lines.get(#line-1).and_then(|s| {
+                                        s.get(#start - 1 .. #end)
+                                    }).unwrap()),
+                                },
                             }
                         } else {
                             quote!{#name: String::new(),}

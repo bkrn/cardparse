@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/bkrn/cardparse.svg?branch=master)](https://travis-ci.org/bkrn/cardparse)
+[![codecov](https://codecov.io/gh/bkrn/cardparse/branch/master/graph/badge.svg)](https://codecov.io/gh/bkrn/cardparse)
+
 ```rust
 use cardparse::prelude::*;
 

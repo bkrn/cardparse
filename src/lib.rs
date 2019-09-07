@@ -1,8 +1,12 @@
 
 pub use cardparse_derive::*;
 
+
 #[derive(Debug)]
-pub enum ParseError {}
+pub enum ParseError {
+    SourceOverrun{field: String, start: usize, end: Option<usize>, line: usize},
+    FieldOverlap{fields: Vec<String>}
+}
 
 pub trait CardParse {
     fn cardparse(s: &str) -> Result<Self, ParseError> where Self: Sized;
@@ -17,20 +21,38 @@ mod test {
     use super::prelude::*;
 
     #[derive(CardParse)]
-    struct TLE {
+    struct Simple {
         #[location(line=1,start=1,end=12)]
         field_one: String,
         #[location(line=2,start=6,end=12)]
         field_two: String,
     }
 
+    #[derive(CardParse)]
+    struct FirstNoEnd {
+        #[location(line=1,start=1)]
+        field_one: String,
+        #[location(line=2,start=6,end=12)]
+        field_two: String,
+    }
+
     #[test]
-    fn tle() {
-        let tle = TLE::cardparse("Some String it is\nAnd also some other string");
-        assert!(tle.is_ok());
-        let tle = tle.unwrap();
-        assert_eq!(tle.field_one, "Some String ");
-        assert_eq!(tle.field_two, "lso som");
+    fn simple_test() {
+        let simple = Simple::cardparse("Some String it is\nAnd also some other string");
+        assert!(simple.is_ok());
+        let simple = simple.unwrap();
+        assert_eq!(simple.field_one, "Some String ");
+        assert_eq!(simple.field_two, "lso som");
+        
+    }
+
+    #[test]
+    fn first_no_end_test() {
+        let first_no_end = FirstNoEnd::cardparse("Some String it is\nAnd also some other string");
+        assert!(first_no_end.is_ok());
+        let first_no_end = first_no_end.unwrap();
+        assert_eq!(first_no_end.field_one, "Some String it is");
+        assert_eq!(first_no_end.field_two, "lso som");
         
     }
 }

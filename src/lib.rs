@@ -4,8 +4,8 @@ pub use cardparse_derive::*;
 
 #[derive(Debug)]
 pub enum ParseError {
-    SourceOverrun{field: String, start: usize, end: Option<usize>, line: usize},
-    FieldOverlap{fields: Vec<String>}
+    SourceTooLong{field: String, start: usize, end: Option<usize>, line: usize, source_line: String},
+    SourceTooShort{field: String, start: usize, end: Option<usize>, line: usize, source_line: String},
 }
 
 pub trait CardParse {
@@ -32,8 +32,10 @@ mod test {
     struct FirstNoEnd {
         #[location(line=1,start=1)]
         field_one: String,
-        #[location(line=2,start=6,end=12)]
+        #[location(line=2,start=6,max=24)]
         field_two: String,
+        #[location(line=2,start=1,end=5)]
+        field_three: String,
     }
 
     #[test]
@@ -52,7 +54,7 @@ mod test {
         assert!(first_no_end.is_ok());
         let first_no_end = first_no_end.unwrap();
         assert_eq!(first_no_end.field_one, "Some String it is");
-        assert_eq!(first_no_end.field_two, "lso som");
-        
+        assert_eq!(first_no_end.field_two, "lso some other stri");
+        assert_eq!(first_no_end.field_three, "And a");
     }
 }

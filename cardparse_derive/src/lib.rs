@@ -5,6 +5,9 @@ use quote::quote;
 use std::collections::HashMap;
 use syn::{parse_macro_input, parse_quote, Data, DeriveInput, Fields, GenericParam, Generics};
 
+
+
+
 #[proc_macro_derive(CardParse, attributes(location))]
 pub fn derive_card_parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -18,7 +21,7 @@ pub fn derive_card_parse(input: proc_macro::TokenStream) -> proc_macro::TokenStr
 
     let expanded = quote! {
         impl #impl_generics CardParse for #name #ty_generics #where_clause {
-            fn cardparse(s: &str) -> Result<#name, crate::ParseError> {
+            fn cardparse(s: &str) -> Result<#name, ParseError> {
                 let lines: Vec<&str> = s.lines().collect();
                 Ok( #name {
                     #interior
@@ -189,7 +192,13 @@ fn field_instantiation(args: &ParseAttrs) -> proc_macro2::TokenStream {
         } => quote! {
             #name: String::from(lines.get(#line-1).and_then(|s| {
                 s.get(#start - 1 .. )
-            }).unwrap()),
+            }).ok_or_else(|| {ParseError::SourceTooShort{
+                    field: String::from(stringify!(#name)),
+                    start: #start, 
+                    end: None, 
+                    line: #line, 
+                    source_line: String::from(s)
+                }})?),
         },
         ParseAttrs {
             start,
@@ -200,7 +209,13 @@ fn field_instantiation(args: &ParseAttrs) -> proc_macro2::TokenStream {
         } => quote! {
             #name: String::from(lines.get(#line-1).and_then(|s| {
                 s.get(#start - 1 .. #end)
-            }).unwrap()),
+            }).ok_or_else(|| {ParseError::SourceTooShort{
+                    field: String::from(stringify!(#name)), 
+                    start: #start, 
+                    end: Some(#end), 
+                    line: #line, 
+                    source_line: String::from(s)
+                }})?),
         },
         ParseAttrs {
             start,
@@ -211,7 +226,13 @@ fn field_instantiation(args: &ParseAttrs) -> proc_macro2::TokenStream {
         } => quote! {
             #name: String::from(lines.get(#line-1).and_then(|s| {
                 s.get(#start - 1 .. if #max > s.len() {s.len()} else {#max} )
-            }).unwrap()),
+            }).ok_or_else(|| {ParseError::SourceTooShort{
+                    field: String::from(stringify!(#name)),
+                    start: #start, 
+                    end: Some(if #max > s.len() {s.len()} else {#max}), 
+                    line: #line, 
+                    source_line: String::from(s)
+                }})?),
         },
         ParseAttrs {
             end: Some(_),

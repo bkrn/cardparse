@@ -8,6 +8,7 @@ build = "build.rs"
 
 [dependencies]
 cardparse_derive = { path = "cardparse_derive" }
+failure = "0.1"
 
 [build-dependencies]
 skeptic = "0.13"

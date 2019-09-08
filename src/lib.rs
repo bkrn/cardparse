@@ -1,10 +1,11 @@
-
+#[macro_use] extern crate failure;
 pub use cardparse_derive::*;
 
-
-#[derive(Debug)]
+#[derive(Debug,Fail)]
 pub enum ParseError {
+    #[fail(display = "Field '{}' could not be parsed from '{}' because the source was too long", field, source_line)]
     SourceTooLong{field: String, start: usize, end: Option<usize>, line: usize, source_line: String},
+    #[fail(display = "Field '{}' could not be parsed from '{}' because the source was too short", field, source_line)]
     SourceTooShort{field: String, start: usize, end: Option<usize>, line: usize, source_line: String},
 }
 
@@ -20,7 +21,7 @@ pub mod prelude {
 mod test {
     use super::prelude::*;
 
-    #[derive(CardParse)]
+    #[derive(CardParse,Debug)]
     struct Simple {
         #[location(line=1,start=1,end=12)]
         field_one: String,
@@ -28,7 +29,7 @@ mod test {
         field_two: String,
     }
 
-    #[derive(CardParse)]
+    #[derive(CardParse,Debug)]
     struct FirstNoEnd {
         #[location(line=1,start=1)]
         field_one: String,
@@ -56,5 +57,15 @@ mod test {
         assert_eq!(first_no_end.field_one, "Some String it is");
         assert_eq!(first_no_end.field_two, "lso some other stri");
         assert_eq!(first_no_end.field_three, "And a");
+    }
+
+     #[test]
+    fn first_no_end_failure_test() {
+        let first_no_end = FirstNoEnd::cardparse("Some String it is\nAnd");
+        assert!(first_no_end.is_err());
+        assert_eq!(
+            format!("{}", first_no_end.unwrap_err()), 
+            "Field 'field_two' could not be parsed from 'Some String it is\nAnd' because the source was too short"
+        );
     }
 }

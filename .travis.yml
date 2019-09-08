@@ -27,8 +27,9 @@ addons:
       - libiberty-dev
 
 script:
-  - cargo build --all --verbose
-  - cargo test --verbose --all --all-features
+  - cargo clean
+  - cargo build --verbose --all 
+  - cargo test --verbose --all
 
 after_success: |
   if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then

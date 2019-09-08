@@ -27,7 +27,7 @@ addons:
       - libiberty-dev
 
 script:
-  - cargo build --verbose
+  - cargo build --all --verbose
   - cargo test --verbose --all --all-features
 
 after_success: |

@@ -1,6 +1,12 @@
 [![Build Status](https://travis-ci.org/bkrn/cardparse.svg?branch=master)](https://travis-ci.org/bkrn/cardparse)
 [![codecov](https://codecov.io/gh/bkrn/cardparse/branch/master/graph/badge.svg)](https://codecov.io/gh/bkrn/cardparse)
 
+# CardParse
+
+Derive a trait that allows creating a struct from a fixed width text data source by specifying the location of data as field attributes in the struct
+
+
+
 ```rust
 use cardparse::prelude::*;
 
@@ -12,6 +18,8 @@ static TLE_STRING: &str = r#"ISS (ZARYA)
 #[derive(cardparse::CardParse)]
 struct TwoLineElement {
     // If end is missing then read to end of line
+    // but only as far as max - otherwise return
+    // Err(cardparse::ParseError::SourceTooShort{..})
     #[location(line=1,start=1,max=24)]
     name: String,
     #[location(line=2,start=1,end=1)]

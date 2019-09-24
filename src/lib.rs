@@ -13,6 +13,7 @@ pub enum ParseError {
 /// always inclusive.**
 /// 
 /// ```
+/// use cardparse::prelude::*;
 /// #[derive(CardParse,Debug)]
 /// struct FirstNoEnd {
 ///     #[location(line=1,start=1)]

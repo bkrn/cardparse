@@ -3,12 +3,26 @@ pub use cardparse_derive::*;
 
 #[derive(Debug,Fail)]
 pub enum ParseError {
-    #[fail(display = "Field '{}' could not be parsed from '{}' because the source was too long", field, source_line)]
-    SourceTooLong{field: String, start: usize, end: Option<usize>, line: usize, source_line: String},
     #[fail(display = "Field '{}' could not be parsed from '{}' because the source was too short", field, source_line)]
     SourceTooShort{field: String, start: usize, end: Option<usize>, line: usize, source_line: String},
 }
 
+/// The `CardParse` trait should be derived for structs as `#[derive(CardParse)]`
+/// struct fields are then tagged with attributes like `#[location(line=2,start=6,end=24)]`.
+/// **Values to the field attributes are by index not offset (start at one) and
+/// always inclusive.**
+/// 
+/// ```
+/// #[derive(CardParse,Debug)]
+/// struct FirstNoEnd {
+///     #[location(line=1,start=1)]
+///     field_one: String,
+///     #[location(line=2,start=6,max=24)]
+///     field_two: String,
+///     #[location(line=2,start=1,end=5)]
+///     field_three: String,
+/// }
+/// ```
 pub trait CardParse {
     fn cardparse(s: &str) -> Result<Self, ParseError> where Self: Sized;
 }

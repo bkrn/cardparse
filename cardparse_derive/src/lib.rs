@@ -260,10 +260,13 @@ impl ParsingStructure {
         let mut new_field = Some(field);
         for field in attrs {
             if let Some(field_ref) = new_field.as_ref() {
-                if field.start > field_ref.end.unwrap_or_default() {
-                    new_fields.push(new_field.take().unwrap())
-                } else if field.end.is_none() || field.end.map(|e| e > field_ref.start).unwrap() {
-                    panic! {"Fields '{}' and '{}' have overlapping locations", field.field, field_ref.field}
+                let ab = field_ref.end.map(|e| field.start < e);
+                let bc = field.end.map(|e| field_ref.start < e);
+                match (ab, bc) {
+                    (Some(true), Some(true)) => panic! {"Fields '{}' and '{}' have overlapping locations", field.field, field_ref.field},
+                    (Some(true), None) => panic! {"Fields '{}' and '{}' have overlapping locations", field.field, field_ref.field},
+                    (None, Some(true)) => panic! {"Fields '{}' and '{}' have overlapping locations", field.field, field_ref.field},
+                    _ => new_fields.push(new_field.take().unwrap()),
                 }
             }
             new_fields.push(field);

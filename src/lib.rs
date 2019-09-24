@@ -24,6 +24,20 @@ pub enum ParseError {
 ///     field_three: String,
 /// }
 /// ```
+/// 
+/// CardpParse protects against overlapping attributes at compile time
+/// 
+/// ```compile_fail
+/// use cardparse::prelude::*;
+/// #[derive(CardParse,Debug)]
+/// struct FirstNoEnd {
+///     #[location(line=1,start=1.end=4)]
+///     field_one: String,
+///     #[location(line=1,start=2,end=6)]
+///     field_two: String,
+/// }
+/// ```
+
 pub trait CardParse {
     fn cardparse(s: &str) -> Result<Self, ParseError> where Self: Sized;
 }

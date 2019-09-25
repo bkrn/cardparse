@@ -3,11 +3,16 @@ name = "cardparse"
 version = "0.1.0"
 authors = ["aaron@bkrn.org"]
 edition = "2018"
+license = "GPL"
+description = "Fixed width text format parsing to structs"
+documentation = "https://docs.rs/cardparse"
+homepage = "https://github.com/bkrn/cardparse"
+repository = "https://github.com/bkrn/cardparse"
 
 build = "build.rs"
 
 [dependencies]
-cardparse_derive = { path = "cardparse_derive" }
+cardparse_derive = { path = "cardparse_derive", version="0.1.0" }
 failure = "0.1"
 
 [build-dependencies]
